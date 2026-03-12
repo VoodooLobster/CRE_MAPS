@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coral Gables Property Map</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f5f5f5;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        
+        .map-header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            z-index: 1000;
+            max-width: 320px;
+        }
+        
+        .map-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+        
+        .map-header p {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .property-popup {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            min-width: 280px;
+        }
+        
+        .property-popup h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        
+        .property-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .property-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .property-detail .label {
+            font-weight: 600;
+            color: #666;
+            flex: 0 0 auto;
+            margin-right: 12px;
+        }
+        
+        .property-detail .value {
+            color: #1a1a1a;
+            text-align: right;
+            flex: 1;
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: 6px;
+        }
+        
+        .leaflet-popup-tip {
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="map-header">
+        <h2>Coral Gables</h2>
+        <p>13 properties • Interactive map</p>
+    </div>
+
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([25.749, -80.263], 15);
+        
+        // CartoDB Positron Light basemap
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+        
+        // Custom orange marker icon
+        const markerIcon = L.icon({
+            iconUrl: 'https://i.imgur.com/f7IF2sf.png',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40],
+            shadowUrl: undefined
+        });
+        
+        // Property data
+        const properties = [
+            {
+                address: '3305 SW 37th Ave',
+                type: 'Office',
+                year: 2018,
+                sf: '3,231',
+                price: '$3,400,000',
+                price_sf: '$1,052.00',
+                sale_date: '12/4/2025',
+                lat: 25.729592,
+                lng: -80.2534998
+            },
+            {
+                address: '2419-2423 S Le Jeune Rd',
+                type: 'Office',
+                year: 1955,
+                sf: '4,937',
+                price: '$5,500,000',
+                price_sf: '$1,114.00',
+                sale_date: '7/9/2025',
+                lat: 25.748672199999998,
+                lng: -80.2625
+            },
+            {
+                address: '4019 S Le Jeune Rd',
+                type: 'Retail',
+                year: 1950,
+                sf: '2,865',
+                price: '$2,100,000',
+                price_sf: '$733.00',
+                sale_date: '7/1/2025',
+                lat: 25.7343089,
+                lng: -80.2618447
+            },
+            {
+                address: '241-245 University Dr',
+                type: 'Retail',
+                year: 1954,
+                sf: '4,165',
+                price: '$3,000,000',
+                price_sf: '$720.00',
+                sale_date: '12/13/2024',
+                lat: 25.7438789,
+                lng: -80.25979939999999
+            },
+            {
+                address: '2344 S Douglas Rd',
+                type: 'Office',
+                year: 1951,
+                sf: '3,958',
+                price: '$3,350,000',
+                price_sf: '$846.00',
+                sale_date: '7/24/2024',
+                lat: 25.7507235,
+                lng: -80.25480519999999
+            },
+            {
+                address: '1826 Ponce De Leon Blvd',
+                type: 'Retail',
+                year: 1947,
+                sf: '4,660',
+                price: '$2,850,000',
+                price_sf: '$611.00',
+                sale_date: '6/8/2024',
+                lat: 25.755414299999998,
+                lng: -80.25913899999999
+            },
+            {
+                address: '101 Madeira Ave',
+                type: 'Office',
+                year: 1963,
+                sf: '7,254',
+                price: '$3,760,000',
+                price_sf: '$518.00',
+                sale_date: '5/31/2024',
+                lat: 25.7561322,
+                lng: -80.2571607
+            },
+            {
+                address: '2850 Salzedo St',
+                type: 'Retail',
+                year: 1948,
+                sf: '7,275',
+                price: '$5,700,000',
+                price_sf: '$783.00',
+                sale_date: '4/29/2024',
+                lat: 25.7456751,
+                lng: -80.2607587
+            },
+            {
+                address: '273 Minorca Ave',
+                type: 'Specialty',
+                year: 2009,
+                sf: '2,675',
+                price: '$2,900,000',
+                price_sf: '$1,084.00',
+                sale_date: '12/20/2023',
+                lat: 25.753820899999997,
+                lng: -80.2604042
+            },
+            {
+                address: '255 University Dr',
+                type: 'Office',
+                year: 1958,
+                sf: '11,682',
+                price: '$7,500,000',
+                price_sf: '$642.00',
+                sale_date: '2/13/2023',
+                lat: 25.743787599999997,
+                lng: -80.2601603
+            },
+            {
+                address: '355 Palermo Ave',
+                type: 'Office',
+                year: 1969,
+                sf: '4,817',
+                price: '$2,500,000',
+                price_sf: '$519.00',
+                sale_date: '2/13/2023',
+                lat: 25.7456258,
+                lng: -80.2615888
+            },
+            {
+                address: '359 Alcazar Ave',
+                type: 'Office',
+                year: 1958,
+                sf: '5,917',
+                price: '$4,250,000',
+                price_sf: '$718.00',
+                sale_date: '1/18/2023',
+                lat: 25.7529373,
+                lng: -80.2620594
+            },
+            {
+                address: '161 Almeria Ave',
+                type: 'Office',
+                year: 1950,
+                sf: '12,354',
+                price: '$6,350,000',
+                price_sf: '$514.00',
+                sale_date: '4/11/2022',
+                lat: 25.7473703,
+                lng: -80.25783559999999
+            }
+        ];
+        
+        // Create markers and fit bounds
+        const markers = [];
+        
+        properties.forEach(property => {
+            const popupContent = `
+                <div class="property-popup">
+                    <h4>${property.address}</h4>
+                    <div class="property-detail">
+                        <span class="label">Type:</span>
+                        <span class="value">${property.type}</span>
+                    </div>
+                    <div class="property-detail">
+                        <span class="label">Year Built:</span>
+                        <span class="value">${property.year}</span>
+                    </div>
+                    <div class="property-detail">
+                        <span class="label">Building SF:</span>
+                        <span class="value">${property.sf}</span>
+                    </div>
+                    <div class="property-detail">
+                        <span class="label">Price:</span>
+                        <span class="value">${property.price}</span>
+                    </div>
+                    <div class="property-detail">
+                        <span class="label">Price/SF:</span>
+                        <span class="value">${property.price_sf}</span>
+                    </div>
+                    <div class="property-detail">
+                        <span class="label">Sale Date:</span>
+                        <span class="value">${property.sale_date}</span>
+                    </div>
+                </div>
+            `;
+            
+            const marker = L.marker([property.lat, property.lng], { icon: markerIcon })
+                .bindPopup(popupContent)
+                .addTo(map);
+            
+            markers.push(marker);
+        });
+        
+        // Fit bounds to all markers
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+    </script>
+</body>
+</html>
